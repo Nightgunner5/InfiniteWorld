@@ -387,9 +387,15 @@ public class Octree implements Serializable {
 		float step = 1.0f / (1 << detail);
 		float[] ret = new float[3];
 
+		long total = (1 << detail) << 3;
+		long current = 0;
+
 		for (int x = 0; x < (1 << detail); x++) {
 			for (int y = 0; y < (1 << detail); y++) {
 				for (int z = 0; z < (1 << detail); z++) {
+					current++;
+					if ((current * 100) / total != ((current - 1) * 100) / total)
+						System.out.println("Processing ray traced lighting... " + ((current * 100) / total) + "% completed");
 					if (getMaterialAt(x * step, y * step, z * step) == Material.NOTHING) {
 						continue;
 					}
@@ -397,11 +403,11 @@ public class Octree implements Serializable {
 					lightingTrace[0] -= x * step;
 					lightingTrace[1] -= y * step;
 					lightingTrace[2] -= z * step;
-					double distance = Math.sqrt(lightingTrace[0] * lightingTrace[0]
+					double distanceSq = lightingTrace[0] * lightingTrace[0]
 							+ lightingTrace[1] * lightingTrace[1]
-							+ lightingTrace[2] * lightingTrace[2]);
+							+ lightingTrace[2] * lightingTrace[2];
 
-					lighting[x][y][z] = (byte) (255 - Math.min(Math.max((long) (distance * 2000), 0), 255));
+					lighting[x][y][z] = (byte) (255 - Math.min(Math.max((long) (distanceSq * 1000), 0), 255));
 				}
 			}
 		}
@@ -415,9 +421,14 @@ public class Octree implements Serializable {
 			{0, 0, -2}
 		};
 
+		total = ((1 << detail) - 4) << 3;
+		current = 0;
 		for (int x = 2; x < (1 << detail) - 2; x++) {
 			for (int y = 2; y < (1 << detail) - 2; y++) {
 				for (int z = 2; z < (1 << detail) - 2; z++) {
+					current++;
+					if ((current * 100) / total != ((current - 1) * 100) / total)
+						System.out.println("Processing ambient occlusion... " + ((current * 100) / total) + "% completed");
 					if (getMaterialAt(x * step, y * step, z * step) != Material.NOTHING) {
 						continue;
 					}
