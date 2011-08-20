@@ -117,11 +117,11 @@ public class Octree implements Serializable {
 	}
 
 	public static Octree generateOctree(OctreeGenerator gen, int detail,
-										double startX, double startY, double startZ,
-										double endX, double endY, double endZ) {
-		double halfX = (endX - startX) / 2;
-		double halfY = (endY - startY) / 2;
-		double halfZ = (endZ - startZ) / 2;
+										float startX, float startY, float startZ,
+										float endX, float endY, float endZ) {
+		float halfX = (endX - startX) / 2;
+		float halfY = (endY - startY) / 2;
+		float halfZ = (endZ - startZ) / 2;
 		if (detail > 0) {
 			return interner.intern(new Octree(generateOctree(gen, detail - 1, startX, startY, startZ, endX - halfX, endY - halfY, endZ - halfZ),
 											  generateOctree(gen, detail - 1, startX, startY, startZ + halfZ, endX - halfX, endY - halfY, endZ),
@@ -152,12 +152,12 @@ public class Octree implements Serializable {
 	/**
 	 * x, y, and z are 0..1
 	 */
-	public int getLightAt(double x, double y, double z) {
+	public int getLightAt(float x, float y, float z) {
 		if (contents == null) {
 			return UnsignedBytes.toInt(lighting);
 		}
 
-		int coord = (x >= 0.5 ? 4 : 0) | (y >= 0.5 ? 2 : 0) | (z >= 0.5 ? 1 : 0);
+		int coord = (x >= 0.5f ? 4 : 0) | (y >= 0.5f ? 2 : 0) | (z >= 0.5f ? 1 : 0);
 
 		Octree oct = contents[coord];
 
@@ -167,12 +167,12 @@ public class Octree implements Serializable {
 	/**
 	 * x, y, and z are 0..1
 	 */
-	public Material getMaterialAt(double x, double y, double z) {
+	public Material getMaterialAt(float x, float y, float z) {
 		if (contents == null) {
 			return content == null ? Material.NOTHING : content;
 		}
 
-		int coord = (x >= 0.5 ? 4 : 0) | (y >= 0.5 ? 2 : 0) | (z >= 0.5 ? 1 : 0);
+		int coord = (x >= 0.5f ? 4 : 0) | (y >= 0.5f ? 2 : 0) | (z >= 0.5f ? 1 : 0);
 
 		Octree oct = contents[coord];
 
@@ -186,9 +186,9 @@ public class Octree implements Serializable {
 	private static final int CLIP_BACK = 1 << 5;
 
 	// Based on code from http://www.gdmag.com/src/aug01.zip
-	private static int calcOutcode(double x, double y, double z,
-								   double minX, double minY, double minZ,
-								   double maxX, double maxY, double maxZ) {
+	private static int calcOutcode(float x, float y, float z,
+								   float minX, float minY, float minZ,
+								   float maxX, float maxY, float maxZ) {
 		int outcode = 0;
 
 		if (x > maxX) {
@@ -210,14 +210,14 @@ public class Octree implements Serializable {
 		return outcode;
 	}
 
-	private static double[] doesCollide(double startX, double startY, double startZ,
-										double endX, double endY, double endZ,
-										double minX, double minY, double minZ,
-										double maxX, double maxY, double maxZ) {
+	private static float[] doesCollide(float startX, float startY, float startZ,
+									   float endX, float endY, float endZ,
+									   float minX, float minY, float minZ,
+									   float maxX, float maxY, float maxZ) {
 		int outcode1 = calcOutcode(startX, startY, startZ, minX, minY, minZ, maxX, maxY, maxZ);
 		if (outcode1 == 0) {
 			// point inside bounding box
-			return new double[] {startX, startY, startZ};
+			return new float[] {startX, startY, startZ};
 		}
 
 		int outcode2 = calcOutcode(endX, endY, endZ, minX, minY, minZ, maxX, maxY, maxZ);
@@ -228,53 +228,53 @@ public class Octree implements Serializable {
 
 		// check intersections
 		if ((outcode1 & (CLIP_RIGHT | CLIP_LEFT)) != 0) {
-			double interceptX;
+			float interceptX;
 			if ((outcode1 & CLIP_RIGHT) != 0) {
 				interceptX = maxX;
 			} else {
 				interceptX = minX;
 			}
-			double x1 = endX - startX;
-			double x2 = interceptX - startX;
-			double interceptY = startY + x2 * (endY - startY) / x1;
-			double interceptZ = startZ + x2 * (endZ - startZ) / x1;
+			float x1 = endX - startX;
+			float x2 = interceptX - startX;
+			float interceptY = startY + x2 * (endY - startY) / x1;
+			float interceptZ = startZ + x2 * (endZ - startZ) / x1;
 
 			if (interceptY <= maxY && interceptY >= minY && interceptZ <= maxZ && interceptZ >= minZ) {
-				return new double[] {interceptX, interceptY, interceptZ};
+				return new float[] {interceptX, interceptY, interceptZ};
 			}
 		}
 
 		if ((outcode1 & (CLIP_TOP | CLIP_BOTTOM)) != 0) {
-			double interceptY;
+			float interceptY;
 			if ((outcode1 & CLIP_TOP) != 0) {
 				interceptY = maxY;
 			} else {
 				interceptY = minY;
 			}
-			double y1 = endY - startY;
-			double y2 = interceptY - startY;
-			double interceptX = startX + y2 * (endX - startX) / y1;
-			double interceptZ = startZ + y2 * (endZ - startZ) / y1;
+			float y1 = endY - startY;
+			float y2 = interceptY - startY;
+			float interceptX = startX + y2 * (endX - startX) / y1;
+			float interceptZ = startZ + y2 * (endZ - startZ) / y1;
 
 			if (interceptX <= maxX && interceptX >= minX && interceptZ <= maxZ && interceptZ >= minZ) {
-				return new double[] {interceptX, interceptY, interceptZ};
+				return new float[] {interceptX, interceptY, interceptZ};
 			}
 		}
 
 		if ((outcode1 & (CLIP_FRONT | CLIP_BACK)) != 0) {
-			double interceptZ;
+			float interceptZ;
 			if ((outcode1 & CLIP_BACK) != 0) {
 				interceptZ = maxZ;
 			} else {
 				interceptZ = minZ;
 			}
-			double z1 = endZ - startZ;
-			double z2 = interceptZ - startZ;
-			double interceptX = startX + z2 * (endX - startX) / z1;
-			double interceptY = startY + z2 * (endY - startY) / z1;
+			float z1 = endZ - startZ;
+			float z2 = interceptZ - startZ;
+			float interceptX = startX + z2 * (endX - startX) / z1;
+			float interceptY = startY + z2 * (endY - startY) / z1;
 
 			if (interceptX <= maxX && interceptX >= minX && interceptY <= maxY && interceptY >= minY) {
-				return new double[] {interceptX, interceptY, interceptZ};
+				return new float[] {interceptX, interceptY, interceptZ};
 			}
 		}
 
@@ -285,8 +285,8 @@ public class Octree implements Serializable {
 	 * x, y, and z are 0..1
 	 * Returns null if nothing is hit
 	 */
-	public double[] trace(double startX, double startY, double startZ,
-						  double endX, double endY, double endZ) {
+	public float[] trace(float startX, float startY, float startZ,
+						 float endX, float endY, float endZ) {
 		if (contents == null) {
 			return content == null ? null : doesCollide(startX, startY, startZ, endX, endY, endZ,
 														0, 0, 0, 1, 1, 1);
@@ -299,14 +299,14 @@ public class Octree implements Serializable {
 					int y = startY > endY ? 1 - _y : _y;
 					int z = startZ > endZ ? 1 - _z : _z;
 					if (doesCollide(startX, startY, startZ, endX, endY, endZ,
-									x * 0.5, y * 0.5, z * 0.5,
-									x * 0.5 + 0.5, y * 0.5 + 0.5, z * 0.5 + 0.5) != null) {
-						double[] pos = contents[x * 4 + y * 2 + z].trace(startX * 2 - x, startY * 2 - y, startZ * 2 - z,
+									x * 0.5f, y * 0.5f, z * 0.5f,
+									x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f) != null) {
+						float[] pos = contents[x * 4 + y * 2 + z].trace(startX * 2 - x, startY * 2 - y, startZ * 2 - z,
 																		 endX * 2 - x, endY * 2 - y, endZ * 2 - z);
 						if (pos != null) {
-							pos[0] = pos[0] / 2 + x * 0.5;
-							pos[1] = pos[1] / 2 + y * 0.5;
-							pos[2] = pos[2] / 2 + z * 0.5;
+							pos[0] = pos[0] / 2 + x * 0.5f;
+							pos[1] = pos[1] / 2 + y * 0.5f;
+							pos[2] = pos[2] / 2 + z * 0.5f;
 							return pos;
 						}
 					}
@@ -321,16 +321,16 @@ public class Octree implements Serializable {
 	 * x, y, and z are 0..1
 	 * Returns null if nothing is hit
 	 */
-	public double[] traceFov(double startX, double startY, double startZ,
-							 double minX, double minY, double minZ,
-							 double endX, double endY, double endZ,
-							 double maxX, double maxY, double maxZ) {
-		double[] near = doesCollide(startX, startY, startZ, endX, endY, endZ, minX, minY, minZ, maxX, maxY, maxZ);
+	public float[] traceFov(float startX, float startY, float startZ,
+							float minX, float minY, float minZ,
+							float endX, float endY, float endZ,
+							float maxX, float maxY, float maxZ) {
+		float[] near = doesCollide(startX, startY, startZ, endX, endY, endZ, minX, minY, minZ, maxX, maxY, maxZ);
 		if (near == null) {
 			return null;
 		}
 
-		double[] far = doesCollide(endX, endY, endZ, startX, startY, startZ, minX, minY, minZ, maxX, maxY, maxZ);
+		float[] far = doesCollide(endX, endY, endZ, startX, startY, startZ, minX, minY, minZ, maxX, maxY, maxZ);
 		if (far == null) {
 			throw new RuntimeException();
 		}
@@ -370,7 +370,7 @@ public class Octree implements Serializable {
 	public Octree generateLightingOctree(int detail) {
 		byte[][][] lighting = new byte[1 << detail][1 << detail][1 << detail];
 
-		double step = 1.0 / (1 << detail);
+		float step = 1.0f / (1 << detail);
 
 		for (int x = 0; x < (1 << detail); x++) {
 			for (int y = 0; y < (1 << detail); y++) {
@@ -378,7 +378,7 @@ public class Octree implements Serializable {
 					if (getMaterialAt(x * step, y * step, z * step) == Material.NOTHING) {
 						continue;
 					}
-					double[] lightingTrace = trace(x * step, -3, z * step, x * step, y * step, z * step);
+					float[] lightingTrace = trace(x * step, -3, z * step, x * step, y * step, z * step);
 					lightingTrace[0] -= x * step;
 					lightingTrace[1] -= y * step;
 					lightingTrace[2] -= z * step;
@@ -391,7 +391,7 @@ public class Octree implements Serializable {
 			}
 		}
 
-		final double[][] aoTraces = {
+		final float[][] aoTraces = {
 			{2, 0, 0},
 			{0, 2, 0},
 			{0, 0, 2},
@@ -406,8 +406,8 @@ public class Octree implements Serializable {
 					if (getMaterialAt(x * step, y * step, z * step) != Material.NOTHING) {
 						continue;
 					}
-					for (double[] aoTrace : aoTraces) {
-						double[] traceResult = trace(x * step, y * step, z * step,
+					for (float[] aoTrace : aoTraces) {
+						float[] traceResult = trace(x * step, y * step, z * step,
 													 (x + aoTrace[0]) * step,
 													 (y + aoTrace[1]) * step,
 													 (z + aoTrace[2]) * step);
