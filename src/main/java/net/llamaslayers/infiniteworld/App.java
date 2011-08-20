@@ -17,6 +17,9 @@ public class App {
 		int lastGenerate = -1;
 		int lastLight = -1;
 		int lastRender = -1;
+		float[] internal1 = new float[3];
+		float[] internal2 = new float[3];
+		float[] ret = new float[3];
 
 		System.out.println("Memory after initialization: " + getMem());
 		System.gc();
@@ -52,7 +55,7 @@ public class App {
 					for (int y = 0; y < 512; y++) {
 						float[] pos = oct.traceFov(0.5f, 0.5f, -2, 0.25f, 0.25f, 0.25f,
 													x / 1024.0f + 0.25f, y / 1024.0f + 0.25f, 0.75f,
-													0.75f, 0.75f, 0.75f);
+													0.75f, 0.75f, 0.75f, internal1, internal2, ret);
 						if (pos == null) {
 							img.setRGB(x, y, 0x77EEFF);
 						} else {
